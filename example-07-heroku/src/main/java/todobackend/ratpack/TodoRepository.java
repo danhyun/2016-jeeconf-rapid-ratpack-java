@@ -39,16 +39,15 @@ public class TodoRepository {
   public Promise<Todo> add(Todo todo) {
     TodoRecord todoRecord = context.newRecord(TODO, todo);
     return Operation.of(todoRecord::store)
-      .wiretap(t -> todoRecord.refresh())
+      .next(todoRecord::refresh)
       .map(() -> todoRecord.into(Todo.class));
   }
 
   public Promise<Todo> update(Map<String, Object> todo) {
     TodoRecord record = context.newRecord(TODO, todo);
 
-    return Blocking
-      .get(() -> context.executeUpdate(record))
-      .wiretap(count -> record.refresh())
+    return Blocking.get(() -> context.executeUpdate(record))
+      .blockingOp(count -> record.refresh())
       .map(i -> record.into(Todo.class));
   }
 

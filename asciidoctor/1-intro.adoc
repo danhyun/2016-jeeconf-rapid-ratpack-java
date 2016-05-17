@@ -1,3 +1,9 @@
+== Code sample and notes
+
+The code for this presentation is available at https://github.com/danhyun/2016-jeeconf-rapid-ratpack-java.
+
+These notes are also available in https://danhyun.github.io/2016-jeeconf-rapid-ratpack-java/notes.pdf[PDF format].
+
 == Goal
 
 * Produce a REST API in Java to manage Todos.
