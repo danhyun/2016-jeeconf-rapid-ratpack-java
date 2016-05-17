@@ -1,0 +1,14 @@
+plugins {
+  id 'io.ratpack.ratpack-java' version '1.3.3'
+}
+
+repositories {
+  jcenter()
+}
+
+mainClassName = 'App'
+
+task demo(type:JavaExec) {
+  main = project.hasProperty('app') ? project.app : 'App'
+  classpath = sourceSets.main.runtimeClasspath
+}

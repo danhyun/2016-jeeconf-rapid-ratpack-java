@@ -1,0 +1,57 @@
+// tag::build[]
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'com.h2database:h2:1.4.186'   // <1>
+    classpath 'org.jooq:jooq-codegen:3.8.1' // <2>
+  }
+}
+
+plugins {
+  id 'io.ratpack.ratpack-java' version '1.3.3'
+}
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  compile ratpack.dependency('hikari') // <3>
+  compile 'com.h2database:h2:1.4.186' // <4>
+  compile 'org.jooq:jooq:3.8.1' // <5>
+}
+// end::build[]
+
+task demo(type:JavaExec) {
+  main = project.hasProperty('app') ? project.app : 'App'
+  classpath = sourceSets.main.runtimeClasspath
+}
+
+import org.jooq.util.jaxb.*
+import org.jooq.util.*
+
+// tag::jooq[]
+task jooqCodegen {
+  doLast {
+    String init = "$projectDir/src/main/resources/init.sql".replaceAll('\\\\', '/') // <1>
+    Configuration configuration = new Configuration()
+      .withJdbc(new Jdbc()
+      .withDriver("org.h2.Driver") // <2>
+      .withUrl("jdbc:h2:mem:todo;INIT=RUNSCRIPT FROM '$init'") // <3>
+    )
+      .withGenerator(new Generator()
+        .withDatabase(new Database()
+          .withName("org.jooq.util.h2.H2Database")
+          .withIncludes(".*")
+          .withExcludes("")
+          .withInputSchema("PUBLIC")
+        )
+      .withTarget(new Target()
+        .withDirectory("$projectDir/src/main/java") // <4>
+        .withPackageName("jooq"))) // <5>
+    GenerationTool.generate(configuration)
+  }
+}
+// end::jooq[]

@@ -1,0 +1,57 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath 'com.h2database:h2:1.4.186'
+    classpath 'org.jooq:jooq-codegen:3.8.1'
+  }
+}
+// tag::stage[]
+plugins {
+  id 'io.ratpack.ratpack-java' version '1.3.3'
+  id 'com.github.johnrengelman.shadow' version '1.2.3' // <1>
+}
+
+repositories {
+  jcenter()
+}
+
+mainClassName = 'todobackend.ratpack.TodoApp' // <2>
+
+task stage(dependsOn: installShadowApp) // <3>
+// end::stage[]
+dependencies {
+  compile ratpack.dependency('hikari')
+  compile 'com.h2database:h2:1.4.186'
+  compile 'org.jooq:jooq:3.8.1'
+
+  runtime 'org.apache.logging.log4j:log4j-slf4j-impl:2.2'
+  runtime 'org.apache.logging.log4j:log4j-api:2.2'
+  runtime 'org.apache.logging.log4j:log4j-core:2.2'
+  runtime 'com.lmax:disruptor:3.3.0'
+}
+
+import org.jooq.util.jaxb.*
+import org.jooq.util.*
+task jooqCodegen {
+  doLast {
+    String init = "$projectDir/src/main/resources/create.sql".replaceAll('\\\\', '/')
+    Configuration configuration = new Configuration()
+      .withJdbc(new Jdbc()
+      .withDriver("org.h2.Driver")
+      .withUrl("jdbc:h2:mem:todo;INIT=RUNSCRIPT FROM '$init'")
+    )
+      .withGenerator(new Generator()
+      .withDatabase(new Database()
+      .withName("org.jooq.util.h2.H2Database")
+      .withIncludes(".*")
+      .withExcludes("")
+      .withInputSchema("PUBLIC")
+    )
+      .withTarget(new Target()
+      .withDirectory("src/main/java")
+      .withPackageName("jooq")))
+    GenerationTool.generate(configuration)
+  }
+}

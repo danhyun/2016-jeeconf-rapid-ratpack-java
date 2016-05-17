@@ -1,0 +1,4 @@
+db:
+  dataSourceClassName: org.h2.jdbcx.JdbcDataSource
+  dataSourceProperties:
+    URL: jdbc:h2:mem:todo;INIT=RUNSCRIPT FROM 'classpath:/create.sql'

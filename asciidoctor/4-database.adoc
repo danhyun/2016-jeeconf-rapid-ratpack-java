@@ -1,0 +1,129 @@
+:example: example-03-database
+:java: {example}/src/main/java
+:resources: {example}/src/main/resources
+
+== Database
+
+In order to provide data persistence to our REST application we'll make use of a number of libraries.
+We'll be using an in-memory http://www.h2database.com/html/main.html[h2] database as our main datasource,
+http://brettwooldridge.github.io/HikariCP/[HikariCP] -- a very fast JDBC connection pool library,
+and http://www.jooq.org/[jOOQ] as our primary means of querying the datasource.
+
+The Gradle build file should look something like this:
+
+=== Updating Build Script
+[source, gradle]
+.{example}/{example}.gradle
+----
+include::../{example}/{example}.gradle[tags=build]
+----
+<1> Add h2 as dependency to buildscript
+<2> Add `jooq-codegen` as dependency to buildscript
+<3> Add compile time dependency on `ratpack-hikari`
+<4> Add compile time dependency on `h2`
+<5> Add compile time dependency on `jooq`
+
+We needed to introduce a `buildscript` closure to the build script in order to provide these libraries during task execution.
+The reason we couldn't use the `plugins` DSL is because these h2 and jOOQ libraries are not published as Gradle plugins in the https://plugins.gradle.org/[Gradle plugin portal].
+We'll add a task to our Gradle build script that enables us to generate the classes that reflect our schema.
+
+If you notice `(3)` uses a distinct method to include the `ratpack-hikari` module.
+The `ratpack.dependency` method is provided from the Ratpack Gradle plugin and it allows you to specify the module name in place of the full Group Artifact Version coordinates.
+`ratpack.dependency('hikari')` in this context is equivalent to ``'io.ratpack:ratpack-hikari:1.3.3'`.
+
+=== Defining the Schema
+
+Our domain consists of a single entity, the Todo.
+We will add this initial sql script to our project's resources directory.
+
+[source, sql]
+.{resources}/init.sql
+----
+include::../{resources}/init.sql[]
+----
+
+=== Generating jOOQ classes
+
+We'll make use of a fluent Java API provided by the `jooq-codegen` library, made available previously in the `buildscript` closure.
+We'll use this API and h2 to tell jOOQ how to connect to our datasource, which schemata/tables to include and where to send the generated files.
+
+[source, gradle]
+.{example}/{example}.gradle
+----
+include::../{example}/{example}.gradle[tags=jooq]
+----
+<1> Grab our `init` script from the project, clean up path separator if on Windows
+<2> Configure jOOQ code generation to use h2 Driver
+<3> Configure h2 URL to run the init script
+<4> Specify the target directory
+<5> Specify name of parent package to contain generated classes relative to target directory
+
+Once this task is added, run it from the command line:
+
+[source, bash, subs="attributes"]
+----
+$ ./gradlew :{example}:jooqCodegen
+:{example}:jooqCodegen
+
+BUILD SUCCESSFUL
+
+Total time: 0.985 secs
+----
+
+You should see the generated files in your project now:
+
+[source, bash, subs="verbatim,quotes"]
+----
+├───java
+│   │   App.java
+│   │
+│   └───jooq
+│       │   DefaultCatalog.java
+│       │   Keys.java
+│       │   Public.java
+│       │   Sequences.java
+│       │   Tables.java
+│       │
+│       └───tables
+│           │   *Todo.java* # <1>
+│           │
+│           └───records
+│                   TodoRecord.java
+│
+└───resources
+        init.sql # <2>
+----
+<1> `Todo` represents our table from our `init.sql`
+<2> Our TODO table definition
+
+
+=== Integration
+
+Integrating the new datasource into our REST application is fairly straightforward.
+We need to register the H2 datasource, the Ratpack HikariCP module with Ratpack's registry.
+
+[source, java]
+.{java}/App.java
+----
+include::../{java}/App.java[]
+----
+<1> Create a Guice registry that will be used to provide dependencies to the Ratpack registry
+<2> Add the `HikariModule` provided by `ratpack.dependency('hikari')`
+<3> Configure the `HikariModule` with our H2 connection information
+
+Next we'll add a handler to perform some SQL query and send the result to the client.
+[source, java]
+.{java}/App2.java
+----
+include::../{java}/App2.java[tags=jooq]
+----
+<1> Retrieve the `DataSource` registered from `HikariModule` from the `Context`
+<2> Create a `DSLContext` jOOQ object for querying the datasource
+<3> Issue a `SELECT * FROM TODO;`
+<4> Return results as JSON to the user
+
+We are now set to query from a datasource and send results as JSON to the client.
+
+IMPORTANT: Do not deploy this code!
+Our implementation is very naive and will cause very poor performance in production.
+We'll continue in the next section in how to improve our implementation.

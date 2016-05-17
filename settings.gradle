@@ -1,0 +1,10 @@
+include file(rootDir).list().toList().findAll { it =~ /example-\d{2}/ }.toArray(new String[0])
+
+rootProject.name = 'rapid-ratpack-java'
+
+def setBuildFile(project) {
+  project.buildFileName = "${project.name}.gradle"
+  project.children.each(this.&setBuildFile)
+}
+
+setBuildFile(rootProject)

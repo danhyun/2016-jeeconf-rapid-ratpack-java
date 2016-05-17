@@ -1,0 +1,180 @@
+:example: example-05-json
+:java: {example}/src/main/java
+
+== Working with JSON
+
+Now that we have our datasource and `TodoRepository` it's time to implement the various `Handler` s for interfacing with the `TodoRepository`.
+
+=== Parsing JSON
+
+Ratpack has a parsing framework that understands how to parse incoming JSON to Pojos.
+The `Context#parse` returns a `Promise` which will then provide the parsed JSON object.
+
+[source, java]
+.{java}/App.java
+----
+include::../{java}/App.java[indent=0, tags=parse]
+----
+<1> We make use of `Jackson.fromJson` to inform how our desired target type
+<2> Once the promise is resolved we render the parsed title back to the user.
+
+.App Demo
+[source, bash, subs="verbatim,attributes"]
+----
+$ ./gradlew :{example}:demo -Papp=App # <1>
+
+$ curl -X POST -H 'Content-type: application/json' --data '{"title":"New Task"}' http://localhost:5050/
+New Task
+
+$ curl -X POST -H 'Content-type: application/json' --data '{"title":"Attend JEEConf 2016"}' http://localhost:5050/
+Attend JEEConf 2016
+----
+
+=== Integrating with TodoRepository
+
+Now that we see how easy it to parse incoming JSON, we'll now update the `Handler` to persist this JSON payload.
+
+[source, java]
+.{java}/App2.java
+----
+include::../{java}/App2.java[indent=0, tags=post]
+----
+<1> Retrieve `TodoRepository` from `Context`
+<2> Parse incoming JSON payload
+<3> Add parsed JSON to repository
+<4> Map the resulting `TodoModel` as a renderable JSON object
+<5> Render the response to the client
+
+.App2 Demo
+[source, bash, subs="verbatim,attributes"]
+----
+$ ./gradlew :{example}:demo -Papp=App2
+
+$ curl -X POST -H 'Content-type: application/json' --data '{"title":"New Task"}' http://localhost:5050/
+{"id":1,"title":"New Task","completed":false,"order":null,"url":"null/1"}
+
+$ curl -X POST -H 'Content-type: application/json' --data '{"title":"Attend JEEConf 2016"}' http://localhost:5050/
+{"id":2,"title":"Attend JEEConf 2016","completed":false,"order":null,"url":"null/2"}
+----
+
+=== Reading and Writing
+
+Now that we've implemented the `POST /` endpoint for persisting Todo items, let's put it together with `GET /`.
+You may be tempted to write your chain in this way:
+
+[source, java]
+.{java}/App3.java
+----
+include::../{java}/App3.java[indent=0, tags=handlers]
+----
+
+However you'll run into some strange behavior:
+
+.App3 Demo
+[source, bash, subs="verbatim,attributes"]
+----
+$ ./gradlew :{example}:demo -Papp=App3
+
+$ curl http://localhost:5050/
+[]
+
+$ curl -X POST -H 'Content-type: application/json' --data '{"title":"Attend JEEConf 2016"}' --raw -v -s http://localhost:5050/
+* timeout on name lookup is not supported
+*   Trying ::1...
+* Connected to localhost (::1) port 5050 (#0)
+> POST / HTTP/1.1
+> Host: localhost:5050
+> User-Agent: curl/7.45.0
+> Accept: */*
+> Content-type: application/json
+> Content-Length: 31
+>
+* upload completely sent off: 31 out of 31 bytes
+< HTTP/1.1 405 Method Not Allowed # <1>
+< content-length: 0
+< connection: close
+<
+----
+<1> Method not Allowed?!?!
+
+=== ByMethodSpec
+
+The way the `Chain` works is to eagerly match against incoming request path and then the HTTP method.
+Because we declared `.get(Handler)` before `.post(Handler)`, Ratpack will stop looking for handlers after it finds `.get(Handler)` since we've matched the request path.
+The way to provide multiple methods for the same path is to use `Chain#path` and `Context#byMethod`.
+
+[source, java]
+.{java}/App4.java
+----
+include::../{java}/App4.java[indent=0, tags=handlers]
+----
+<1> Use `Chain#path` to match on path without HTTP method
+<2> Retrieve `TodoRepository` from `Context`
+<3> Use `Context#byMethod` to specify which HTTP methods are considered as valid methods for this path
+<4> Move previous `Chain#get` handler to the `ByMethodSpec#get` block
+<5> Move previous `Chain#post` handler to the `ByMethodSpec#post` block
+
+.App4 Demo
+[source, bash, subs="verbatim,attributes"]
+----
+$ ./gradlew :{example}:demo -Papp=App4
+
+$ curl http://localhost:5050/
+[]
+
+$ curl -X POST -H 'Content-type: application/json' --data '{"title":"Attend JEEConf 2016"}' http://localhost:5050/
+{"id":1,"title":"Attend JEEConf 2016","completed":false,"order":null,"url":"null/1"}
+
+$ curl http://localhost:5050/
+[{"id":1,"title":"Attend JEEConf 2016","completed":false,"order":null,"url":"null/1"}]
+----
+
+=== Putting it all together
+
+We will now combine the CORSHandler with all of the endpoints for performing REST CRUD operations.
+
+[source, java]
+.{java}/App5.java
+----
+include::../{java}/App5.java[]
+----
+<1> Add our `CORSHandler` back into the registry
+<2> Ensure that all requests to go through `CORSHandler`
+<3> Setup logic for REST CRUD operations
+
+.App5 Demo
+[source, bash, subs="verbatim,attributes"]
+----
+$ ./gradlew :{example}:demo -Papp=App5
+
+$ curl http://localhost:5050/
+[]
+
+$ curl -X OPTIONS --raw -v -s http://localhost:5050/
+* timeout on name lookup is not supported
+*   Trying ::1...
+* Connected to localhost (::1) port 5050 (#0)
+> OPTIONS / HTTP/1.1
+> Host: localhost:5050
+> User-Agent: curl/7.45.0
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Access-Control-Allow-Origin: *
+< Access-Control-Allow-Headers: x-requested-with, origin, content-type, accept
+< Access-Control-Allow-Methods: OPTIONS, GET, POST, DELETE
+< content-length: 0
+< connection: keep-alive
+<
+
+$ curl -X POST -H 'Content-type: application/json' --data '{"title":"Attend JEEConf 2016"}' http://localhost:5050/
+{"id":1,"title":"Attend JEEConf 2016","completed":false,"order":null,"url":"null/1"}
+
+$ curl http://localhost:5050/
+[{"id":1,"title":"Attend JEEConf 2016","completed":false,"order":null,"url":"null/1"}]
+
+$ curl -X DELETE http://localhost:5050/
+
+$ curl http://localhost:5050/
+[]
+----

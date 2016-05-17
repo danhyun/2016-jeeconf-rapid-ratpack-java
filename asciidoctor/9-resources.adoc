@@ -1,0 +1,13 @@
+== Resources
+
+Learning Ratpack (Book)::
+  http://shop.oreilly.com/product/0636920037545.do[Learning Ratpack] O'Reilly 2016 by https://twitter.com/danveloper[Dan Woods]
+  
+Slack::
+  https://slack-signup.ratpack.io/[Official Ratpack Community Slack]
+  
+User Guide and Javadoc::
+  https://ratpack.io/[Official Ratpack Website] (written in Ratpack of course)
+  
+Forums::
+  https://forum.ratpack.io/[Official Ratpack Forums]

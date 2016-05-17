@@ -1,0 +1,102 @@
+:example: example-04-async
+:java: {example}/src/main/java
+:resources: {example}/src/main/resources
+
+== Asynchronous Programming
+
+At this point we should remember that Ratpack is a non-blocking and asynchronous framework.
+This has implications in how you code your `Handler` logic.
+If you are performing any kind of blocking I/O or any kind of computationally expensive operation, you'll need to tap into Ratpack's Blocking executor in order to let the main request processing thread continue processing requests.
+If you fail to use the Blocking executor you will start to observe performance degradation.
+
+=== Blocking.get()
+
+In the previous example we were making a blocking JDBC call, preventing the request processing thread of execution from tending to any other incoming requests.
+Ratpack provides a mechanism that allows you to create promises that will be executed on a separate thread pool.
+We will use this Blocking mechanism to represent a bit of work that should not be performed on the request taking thread.
+Promises in Ratpack are not executed unless they are subscribed via `Promise#then`.
+Promises will *always* be resolved in the order in which they were declared.
+Ratpack promise execution is deterministic.
+There is a detailed http://ldaley.com/post/97376696242/ratpack-execution-model-part-1[set] of http://ldaley.com/post/102495950257/ratpacks-execution-model-in-practice[blog articles] by http://twitter.com/ldaley[@ldaley], the project lead of Ratpack that explains this.
+
+Let's rewrite the previous example using the `Blocking` mechanism.
+[source, java]
+.{java}/App.java
+----
+include::../{java}/App.java[indent=0, tags=jooq]
+----
+<1> Use `Blocking.get` to wrap the blocking JDBC call
+<2> Resolve the promise and render the JSON serialized representation to the user
+
+=== Code cleanup
+
+At this point we'll take the time to create a dedicated class that handles CRUD operations for the `TODO` table.
+
+First we'll create a `TodoModel` that represents our `TODO` domain model.
+
+[source, java]
+.{java}/TodoModel.java
+----
+include::../{java}/TodoModel.java[]
+----
+
+Next we'll create a `TodoRepository` for performing CRUD operations on this `TodoModel`
+
+Let's start by migrating the `SELECT * FROM TODO` from the previous `Handler`
+[source, java]
+.{java}/TodoRepository.java
+----
+include::../{java}/TodoRepository.java[indent=0, tags=getAll]
+----
+
+We will now create a `TodoModule` that will provide this `TodoRepository` to the Ratpack registry.
+[source, java]
+.{java}/TodoModule.java
+----
+include::../{java}/TodoModule.java[]
+----
+<1> We're defining the `TodoRepository` as a singleton
+
+Next we'll register this `TodoModule` with Ratpack
+[source, java]
+.{java}/App.java
+----
+include::../{java}/App.java[indent=0, tags=todo-module]
+----
+
+Finally we'll update the `Handler` to make use of the `TodoRepository`
+[source, java]
+.{java}/App2.java
+----
+include::../{java}/App2.java[indent=0, tags=handler]
+----
+
+TIP: For style points I prefer to write in this style using method references
+
+[source, java]
+.{java}/App3.java
+----
+include::../{java}/App3.java[indent=0, tags=handler]
+----
+
+Doesn't that look lovely?
+
+=== Putting it all together
+
+[source, java]
+.{java}/TodoRepository2.java
+----
+include::../{java}/TodoRepository2.java[]
+----
+
+[source, java]
+.{java}/TodoModule2.java
+----
+include::../{java}/TodoModule2.java[]
+----
+
+[source, java]
+.{java}/App4.java
+----
+include::../{java}/App4.java[]
+----

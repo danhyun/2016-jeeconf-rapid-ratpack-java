@@ -1,0 +1,72 @@
+== Goal
+
+* Produce a REST API in Java to manage Todos.
+* Pass specifications @ http://todobackend.com/specs/?https://todo-backend-ratpack-java.herokuapp.com/todo[todobackend.com]
+* Plug into a http://todobackend.com/client/?https://todo-backend-ratpack-java.herokuapp.com/todo[Todo Frontend app]
+
+== Tools
+
+* Ratpack (Web server)
+* Gradle (Build tool)
+
+== What is Ratpack?
+
+Ratpack is a set of developer friendly, reactive, asynchronous, non-blocking Java 8 libraries that facilitate rapid web application development.
+
+* Lightweight
+** No SDK binaries download
+** No intermediary code generation
+
+* Doesn't implement Servlet Specification.
+** Uses Netty for underlying network programming
+** No Servlets
+** No Servlet Container
+
+* Not "Fullsatck" not MVC; Functionality is provided via "modules"
+** Core (HTTP/Execution)
+** Sessions/Auth Pac4j
+** Database (HikariCP)
+** RxJava/Hystrix
+** Templating (Groovy's http://groovy-lang.org/templating.html#_the_markuptemplateengine[MarkupTemplateEngine], Handlebars, Thymeleaf
+** Dependency Injection (Guice/Spring Boot)
+
+* First class testing support
+** Test framework agnostic fixtures that let you test around every feature of Ratpack
+
+
+== Why not Maven?
+
+Because Ratpack is simply a set of Java libraries, all that is required to build Ratpack applications are the Ratpack jar files and `javac`.
+You are free to use any JVM based build tool: Ant + Ivy, Maven, Gradle, etc.
+
+Ratpack has first-class support for Gradle provided via https://plugins.gradle.org/search?term=ratpack[Ratpack's Gradle plugin].
+It allows for easy dependency management (keeps versions of modules in sync) and hooks into https://docs.gradle.org/current/userguide/continuous_build.html[Gradle's continuous functionality].
+
+Can you create a Maven `pom.xml` file from memory?
+I certainly cannot.
+I can create a `build.gradle` file from memory though.
+
+.build.gradle
+[source,gradle]
+----
+plugins { // <1>
+  id 'io.ratpack.ratpack-java' version '1.3.3' // <2>
+}
+
+repositories {
+  jcenter() // <3>
+}
+----
+<1> Make use of Gradle's https://docs.gradle.org/current/userguide/plugins.html#sec:plugins_block[incubating Plugins DSL] (since Gradle 2.1)
+<2> Declare and apply Ratpack's Gradle plugin for Java, provides `ratpack-core` module
+<3> Tell Gradle to pull dependencies from Bintray JCenter
+
+Gradle has a number of out of the box features that make it superior to Maven however the one I will highlight here is the Gradle Wrapper.
+
+The Gradle Wrapper are a set of files that enable developers on a project to use the same exact version of Gradle.
+This is the default and encouraged best practice when it comes to working with Gradle.
+Wrapper scripts are available in `bash` and `bat` formats.
+Because the scripts are typically a part of the project, you don't _need_ to install Gradle to use it, just use the `gradlew` scripts.
+
+[NOTE]
+When generating scripts from Windows, make sure to `chmod +x gradlew` so that your *nix/Mac co-workers and CI server can execute the wrapper script.

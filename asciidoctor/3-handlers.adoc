@@ -1,0 +1,143 @@
+:example: example-02-cors-handler
+:java: {example}/src/main/java
+
+== Handlers
+
+Handlers are where request processing logic is provided.
+A `Handler` is a functional interface defined as `void handle(Context context)`.
+The context is a registry that provides access to a map-like data-structure that can be populated and queried.
+Request and response objects are accessible via the `Handler`.
+
+=== Request Response Interaction
+Setting headers on the response
+[source, java]
+.{java}/App.java
+----
+include::../{java}/App.java[]
+----
+<1> Access the response's headers from the `Context`
+<2> Add some headers for implementing CORS functionality
+<3> Send an empty `200 OK` response
+
+.App Demo
+[source, bash, subs="verbatim,attributes"]
+----
+$ ./gradlew :{example}:demo -Papp=App # <1>
+
+$ curl -v localhost:5050/
+* timeout on name lookup is not supported
+*   Trying ::1...
+* Connected to localhost (::1) port 5050 (#0)
+> GET / HTTP/1.1
+> Host: localhost:5050
+> User-Agent: curl/7.45.0
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Access-Control-Allow-Origin: * # <2>
+< Access-Control-Allow-Headers: x-requested-with, origin, content-type, accept # <2>
+< content-length: 0
+< connection: keep-alive
+<
+* Connection #0 to host localhost left intact
+----
+<1> Invoke `demo` task specifying `App` as our main class
+<2> Issue curl and inspect response headers to verify that our CORS headers are added
+
+=== Organization
+
+The CORS headers should be added for every request, therefore we should separate CORS headers population from individual request handling.
+Handlers can be composed into discrete units of request processing via the `Chain`.
+This allows us to separate CORS headers processing from the rest of the `Chain`.
+Handlers should send a response or delegate to the next `Handler` in the `Chain`.
+Handlers signal delegation via `Context#next`
+
+[source, java]
+.{java}/App2.java
+----
+include::../{java}/App2.java[]
+----
+<1> Declare a new handler to handle all incoming requests regardless of method or path
+<2> Delegate processing to the next `Handler` in the chain
+
+.App2 Demo
+[source, bash, subs="verbatim,attributes"]
+----
+$ ./gradlew :{example}:demo -Papp=App2 # <1>
+
+$ curl -v localhost:5050/
+* timeout on name lookup is not supported
+*   Trying ::1...
+* Connected to localhost (::1) port 5050 (#0)
+> GET / HTTP/1.1
+> Host: localhost:5050
+> User-Agent: curl/7.45.0
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Access-Control-Allow-Origin: * # <2>
+< Access-Control-Allow-Headers: x-requested-with, origin, content-type, accept # <2>
+< content-type: text/plain;charset=UTF-8
+< content-length: 12
+< connection: keep-alive
+<
+JEEConf 2016* Connection #0 to host localhost left intact
+
+~
+$ curl -v localhost:5050/foo
+* timeout on name lookup is not supported
+*   Trying ::1...
+* Connected to localhost (::1) port 5050 (#0)
+> GET /foo HTTP/1.1
+> Host: localhost:5050
+> User-Agent: curl/7.45.0
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Access-Control-Allow-Origin: * # <3>
+< Access-Control-Allow-Headers: x-requested-with, origin, content-type, accept # <3>
+< content-type: text/plain;charset=UTF-8
+< content-length: 3
+< connection: keep-alive
+<
+foo* Connection #0 to host localhost left intact
+
+$ curl -v localhost:5050/error
+* timeout on name lookup is not supported
+*   Trying ::1...
+* Connected to localhost (::1) port 5050 (#0)
+> GET /error HTTP/1.1
+> Host: localhost:5050
+> User-Agent: curl/7.45.0
+> Accept: */*
+>
+< HTTP/1.1 404 Not Found
+< Access-Control-Allow-Origin: * # <4>
+< Access-Control-Allow-Headers: x-requested-with, origin, content-type, accept # <4>
+< content-length: 0
+< connection: keep-alive
+----
+<1> Run `App2` as the main class
+<2> Verify that CORS headers were added to `GET /` endpoint
+<3> Verify that CORS headers were added to `GET /foo` endpoint
+<4> NOTE: CORS headers were added even to non existent endpoints
+
+=== Standalone Handlers
+
+As you can imagine, adding handler chains can grow pretty quickly.
+Ratpack provides ways to evolve your code base as your chains grow.
+
+The idea is to migrate handling logic to discrete classes or groups of classes in order to chain code concise.
+
+[source, java]
+.{java}/CORSHandler.java
+----
+include::../{java}/CORSHandler.java[]
+----
+
+[source, java]
+.{java}/App3.java
+----
+include::../{java}/App3.java[]
+----
+<1> Add the newly migrated `CORSHandler` to our Chain

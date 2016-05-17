@@ -1,0 +1,61 @@
+:example: example-01-hello-world
+:java: {example}/src/main/java
+
+== Привіт Світ
+
+[source, gradle]
+.{example}/{example}.gradle
+----
+include::../{example}/{example}.gradle[]
+----
+<1> Apply Ratpack Gradle plugin
+<2> Tell Gradle to use `HelloWorld` as main Java class
+
+[source, java]
+.{java}/HelloWorld.java
+----
+include::../{java}/HelloWorld.java[]
+----
+<1> Use `RatpackServer` and `RatpackServerSpec` to build our application
+<2> Use `handlers` to declare the `Chain` of our application
+<3> Define a `Handler` for `HTTP GET /` that renders a response to the user
+
+We're now ready to start our application. We'll invoke the run task then navigate to `localhost:5050`
+
+[source, bash, subs="attributes"]
+----
+$ ./gradlew :{example}:run
+
+$ curl -s localhost:5050 | cat
+Привіт Світ
+----
+
+=== Continuous Mode
+
+If you add `-t` or `--continuous` to the task execution, Gradle's continuous mode will be invoked.
+Gradle's continuous mode monitors source code and reruns the specified task.
+
+[TIP]
+Continuous mode cannot currently respond to changes in Gradle build scripts, only in source code or resources.
+
+[source, bash, subs="attributes"]
+----
+$ ./gradlew :{example}:run -t
+
+$ curl -s localhost:5050 | cat
+Привіт Світ
+
+# modify HelloWorld.java
+
+Change detected, executing build...
+
+:{example}:compileJava
+:{example}:processResources UP-TO-DATE
+:{example}:classes
+:{example}:configureRun
+:{example}:run
+Ratpack started (development) for http://localhost:5050
+
+$ curl -s localhost:5050 | cat
+Привіт JEEConf 2016
+----
