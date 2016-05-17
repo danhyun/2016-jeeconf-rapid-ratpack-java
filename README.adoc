@@ -1,0 +1,6 @@
+== Rapid Ratpack Web Development in Java
+Danny Hyun <https://github.com/danhyun[@danhyun] https://twitter.com/LSpacewalker[@LSpacewalker] >
+
+This repository contains the code examples used in the presentation for JEEConf 2016
+
+The notes are available in https://danhyun.github.io/2016-jeeconf-rapid-ratpack-java[html] and https://danhyun.github.io/2016-jeeconf-rapid-ratpack-java/notes.pdf[pdf]

@@ -35,10 +35,6 @@ This file is a signal that communicates to Heroku what command to invoke to star
 ----
 include::../{example}/Procfile[]
 ----
-<1> I recommend using Shadow plugin for packaging your Java applications for production
-<2> The Ratpack Gradle plugin applies `application` plugin, we need to declare our main entrypoint to the application
-<3> We create a `stage` task that invokes `installShadowApp`
-
 
 === Creating and deploying the application to Heroku
 
