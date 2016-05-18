@@ -12,7 +12,7 @@ import java.util.Map;
 import static jooq.tables.Todo.TODO;
 
 public class TodoRepository {
-  // tag::getAll[]
+
   private final DSLContext create;
 
   public TodoRepository(DataSource ds) {
@@ -23,26 +23,24 @@ public class TodoRepository {
     SelectJoinStep all = create.select().from(TODO);
     return Blocking.get(() -> all.fetchInto(TodoModel.class));
   }
-  // end::getAll[]
 
   public Promise<TodoModel> getById(Long id) {
     SelectConditionStep where = create.select().from(TODO).where(TODO.ID.equal(id));
     return Blocking.get(() -> where.fetchOne().into(TodoModel.class));
   }
 
-  public Promise<TodoModel> add(TodoModel TodoModel) {
-    TodoRecord todoRecord = create.newRecord(TODO, TodoModel);
+  public Promise<TodoModel> add(TodoModel todo) {
+    TodoRecord todoRecord = create.newRecord(TODO, todo);
     return Operation.of(todoRecord::store)
       .next(todoRecord::refresh)
       .map(() -> todoRecord.into(TodoModel.class));
   }
 
-  public Promise<TodoModel> update(Map<String, Object> TodoModel) {
-    TodoRecord record = create.newRecord(TODO, TodoModel);
-
-    return Blocking.get(() -> create.executeUpdate(record))
-      .blockingOp(count -> record.refresh())
-      .map(i -> record.into(TodoModel.class));
+  public Promise<TodoModel> update(Map<String, Object> todo) {
+    TodoRecord record = create.newRecord(TODO, todo);
+    return Operation.of(() -> create.executeUpdate(record))
+      .next(record::refresh)
+      .map(() -> record.into(TodoModel.class));
   }
 
   public Operation delete(Long id) {

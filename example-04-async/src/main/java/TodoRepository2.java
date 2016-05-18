@@ -29,19 +29,18 @@ public class TodoRepository2 {
     return Blocking.get(() -> where.fetchOne().into(TodoModel.class));
   }
 
-  public Promise<TodoModel> add(TodoModel TodoModel) {
-    TodoRecord todoRecord = create.newRecord(TODO, TodoModel);
-    return Operation.of(todoRecord::store)
-      .next(todoRecord::refresh)
-      .map(() -> todoRecord.into(TodoModel.class));
+  public Promise<TodoModel> add(TodoModel todo) {
+    TodoRecord record = create.newRecord(TODO, todo);
+    return Operation.of(record::store)
+      .next(record::refresh)
+      .map(() -> record.into(TodoModel.class));
   }
 
-  public Promise<TodoModel> update(Map<String, Object> TodoModel) {
-    TodoRecord record = create.newRecord(TODO, TodoModel);
-
-    return Blocking.get(() -> create.executeUpdate(record))
-      .blockingOp(count -> record.refresh())
-      .map(i -> record.into(TodoModel.class));
+  public Promise<TodoModel> update(Map<String, Object> todo) {
+    TodoRecord record = create.newRecord(TODO, todo);
+    return Operation.of(() -> create.executeUpdate(record))
+      .next(record::refresh)
+      .map(() -> record.into(TodoModel.class));
   }
 
   public Operation delete(Long id) {
