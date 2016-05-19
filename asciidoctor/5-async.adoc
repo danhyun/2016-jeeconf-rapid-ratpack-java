@@ -75,7 +75,7 @@ Finally we'll update the `Handler` to make use of the `TodoRepository`
 include::../{java}/App2.java[indent=0, tags=handler]
 ----
 
-TIP: For style points I prefer to write in this style using method references
+TIP: For style points use method references.
 
 [source, java]
 .{java}/App3.java
