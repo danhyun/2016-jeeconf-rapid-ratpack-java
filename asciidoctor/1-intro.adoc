@@ -70,11 +70,13 @@ repositories {
 Gradle has a number of out of the box features that make it superior to Maven however the one I will highlight here is the Gradle Wrapper.
 
 The Gradle Wrapper is a set of files that enables developer on a project to use the same exact version of Gradle.
-This is the a best practice when it comes to working with Gradle.
+This is a best practice when it comes to working with Gradle.
 Because Gradle is such a well maintained build tool, there are many updates.
 The Gradle Wrapper goes a long way towards preventing "works on my machine" syndrome.
 Wrapper scripts are available in `bash` and `bat` formats.
 Because the scripts are typically a part of the project, you don't _need_ to install Gradle to use it, just use the `gradlew` scripts.
+At some point however, someone somewhere needs to install gradle.
+I recommend installing http://sdkman.io to manage Gradle installations.
 To generate the wrapper, invoke `gradle wrapper` from the command line.
 
 [NOTE]
