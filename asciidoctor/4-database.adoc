@@ -4,7 +4,7 @@
 
 == Database
 
-In order to provide data persistence to our REST application we'll make use of a number of libraries.
+In order to provide persistence to our REST application we'll make use of a number of libraries.
 We'll be using an in-memory http://www.h2database.com/html/main.html[h2] database as our main datasource,
 http://brettwooldridge.github.io/HikariCP/[HikariCP] -- a very fast JDBC connection pool library,
 and http://www.jooq.org/[jOOQ] as our primary means of querying the datasource.
@@ -45,7 +45,7 @@ include::../{resources}/init.sql[]
 === Generating jOOQ classes
 
 We'll make use of a fluent Java API provided by the `jooq-codegen` library, made available previously in the `buildscript` closure.
-We'll use this API and h2 to tell jOOQ how to connect to our datasource, which schemata/tables to include and where to send the generated files.
+We'll use this API and h2 to tell jOOQ how to connect to our datasource, which schemata/tables to include and where to place the generated files.
 
 [source, gradle]
 .{example}/{example}.gradle
@@ -100,7 +100,7 @@ You should see the generated files in your project now:
 === Integration
 
 Integrating the new datasource into our REST application is fairly straightforward.
-We need to register the H2 datasource, the Ratpack HikariCP module with Ratpack's registry.
+We need to register the H2 datasource and the Ratpack HikariCP module with Ratpack's registry.
 
 [source, java]
 .{java}/App.java
@@ -115,7 +115,7 @@ Next we'll add a handler to perform some SQL query and send the result to the cl
 [source, java]
 .{java}/App2.java
 ----
-include::../{java}/App2.java[tags=jooq]
+include::../{java}/App2.java[indent=0,tags=jooq]
 ----
 <1> Retrieve the `DataSource` registered from `HikariModule` from the `Context`
 <2> Create a `DSLContext` jOOQ object for querying the datasource

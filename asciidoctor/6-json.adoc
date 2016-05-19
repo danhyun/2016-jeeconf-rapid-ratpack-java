@@ -15,8 +15,10 @@ The `Context#parse` returns a `Promise` which will then provide the parsed JSON 
 ----
 include::../{java}/App.java[indent=0, tags=parse]
 ----
-<1> We make use of `Jackson.fromJson` to inform how our desired target type
-<2> Once the promise is resolved we render the parsed title back to the user.
+<1> We make use of `Jackson.fromJson` to specify our desired type
+<2> Once the promise is resolved we render the parsed title back to the user
+
+Let's take a look at this JSON title rendering in action.
 
 .App Demo
 [source, bash, subs="verbatim,attributes"]
@@ -113,6 +115,8 @@ include::../{java}/App4.java[indent=0, tags=handlers]
 <3> Use `Context#byMethod` to specify which HTTP methods are considered as valid methods for this path
 <4> Move previous `Chain#get` handler to the `ByMethodSpec#get` block
 <5> Move previous `Chain#post` handler to the `ByMethodSpec#post` block
+
+Now that we're using `Context#byMethod` let's check our results:
 
 .App4 Demo
 [source, bash, subs="verbatim,attributes"]

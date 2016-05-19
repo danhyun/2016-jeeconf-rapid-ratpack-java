@@ -14,8 +14,11 @@ To get started you'll need:
 
 === Setup
 
-In order to deploy our application to Heroku we'll need two pieces of information.
-When using Gradle, we need to provide a `stage` task.
+In order to deploy our application to Heroku we'll need two pieces of information:
+
+* A `Procfile`
+* A `stage` task when using Gradle
+
 Let's go over the changes we'll need to make to the Gradle build script.
 
 [source, gradle]

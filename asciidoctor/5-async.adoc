@@ -14,6 +14,7 @@ If you fail to use the Blocking executor you will start to observe performance d
 In the previous example we were making a blocking JDBC call, preventing the request processing thread of execution from tending to any other incoming requests.
 Ratpack provides a mechanism that allows you to create promises that will be executed on a separate thread pool.
 We will use this Blocking mechanism to represent a bit of work that should not be performed on the request taking thread.
+Promises are *l-a-z-y*.
 Promises in Ratpack are not executed unless they are subscribed via `Promise#then`.
 Promises will *always* be resolved in the order in which they were declared.
 Ratpack promise execution is deterministic.
@@ -27,6 +28,9 @@ include::../{java}/App.java[indent=0, tags=jooq]
 ----
 <1> Use `Blocking.get` to wrap the blocking JDBC call
 <2> Resolve the promise and render the JSON serialized representation to the user
+
+It should be noted that the strongly typed queries can be separated from their actual execution in jOOQ.
+If the methods contain names like `fetch*`, `refresh`, `execute`, `store`, etc these are most likely the actual blocking JDBC call.
 
 === Code cleanup
 
@@ -82,6 +86,8 @@ include::../{java}/App3.java[indent=0, tags=handler]
 Doesn't that look lovely?
 
 === Putting it all together
+
+Here is what the `TodoRepository`, `TodoModule` and `App` should look like at this point:
 
 [source, java]
 .{java}/TodoRepository2.java

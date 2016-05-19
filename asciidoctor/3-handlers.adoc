@@ -46,11 +46,14 @@ $ curl -v localhost:5050/
 
 === Organization
 
-The CORS headers should be added for every request, therefore we should separate CORS headers population from individual request handling.
-Handlers can be composed into discrete units of request processing via the `Chain`.
-This allows us to separate CORS headers processing from the rest of the `Chain`.
-Handlers should send a response or delegate to the next `Handler` in the `Chain`.
-Handlers signal delegation via `Context#next`
+Because our REST implementation requires that CORS is enabled, the `Access-Control-Allow-Origin` and `Access-Control-Allow-Headers` headers need to be set on every response.
+However, setting these headers in each `Handler` is tedious and error prone.
+Luckily `Handler` s are designed to be composable units of request processing.
+Handlers are composed in a logical manner via the `Chain`.
+Handlers can either send a response or delegate further request processing to the next `Handler` in the `Chain`.
+Handlers signal delegation via `Context#next`.
+
+We'll start our refactoring by extracting the CORS setting logic to its own handler.
 
 [source, java]
 .{java}/App2.java
@@ -59,6 +62,8 @@ include::../{java}/App2.java[]
 ----
 <1> Declare a new handler to handle all incoming requests regardless of method or path
 <2> Delegate processing to the next `Handler` in the chain
+
+We can curl the application to make sure that the headers are indeed being set for each request.
 
 .App2 Demo
 [source, bash, subs="verbatim,attributes"]
@@ -125,9 +130,9 @@ $ curl -v localhost:5050/error
 === Standalone Handlers
 
 As you can imagine, adding handler chains can grow pretty quickly.
-Ratpack provides ways to evolve your code base as your chains grow.
+Ratpack provides ways to evolve your code base as your handlers and chains grow.
 
-The idea is to migrate handling logic to discrete classes or groups of classes in order to chain code concise.
+The idea is to migrate handling logic to discrete classes or groups of classes in order to keep code readable and maintainable.
 
 [source, java]
 .{java}/CORSHandler.java

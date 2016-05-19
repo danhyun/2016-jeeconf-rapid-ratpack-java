@@ -3,6 +3,10 @@
 
 == Привіт Світ
 
+Getting started in Ratpack is a non-event.
+You may be accustomed to jumping through hoops to get a new web project started.
+To demonstrate Ratpack's low effort project initialization consider the Gradle build file and the associated Java main class.
+
 [source, gradle]
 .{example}/{example}.gradle
 ----
@@ -19,6 +23,8 @@ include::../{java}/HelloWorld.java[]
 <1> Use `RatpackServer` and `RatpackServerSpec` to build our application
 <2> Use `handlers` to declare the `Chain` of our application
 <3> Define a `Handler` for `HTTP GET /` that renders a response to the user
+
+That's really all that's required to get started!
 
 We're now ready to start our application. We'll invoke the run task then navigate to `localhost:5050`
 

@@ -34,7 +34,6 @@ public class TodoHandler extends InjectionHandler {
           return m;
         })
         .flatMap(repo::update)
-        .map(t -> t.baseUrl(base))
         .map(toJson)
         .then(ctx::render)
       )

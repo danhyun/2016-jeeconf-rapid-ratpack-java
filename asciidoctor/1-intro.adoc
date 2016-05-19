@@ -28,7 +28,7 @@ Ratpack is a set of developer friendly, reactive, asynchronous, non-blocking Jav
 ** No Servlets
 ** No Servlet Container
 
-* Not "Fullsatck" not MVC; Functionality is provided via "modules"
+* Not "Fullstack" not MVC; Functionality is provided https://github.com/ratpack/ratpack[via "modules"]
 ** Core (HTTP/Execution)
 ** Sessions/Auth Pac4j
 ** Database (HikariCP)
@@ -43,9 +43,9 @@ Ratpack is a set of developer friendly, reactive, asynchronous, non-blocking Jav
 == Why not Maven?
 
 Because Ratpack is simply a set of Java libraries, all that is required to build Ratpack applications are the Ratpack jar files and `javac`.
-You are free to use any JVM based build tool: Ant + Ivy, Maven, Gradle, etc.
+You are free to use any build tool: Ant + Ivy, Maven, Gradle, etc.
 
-Ratpack has first-class support for Gradle provided via https://plugins.gradle.org/search?term=ratpack[Ratpack's Gradle plugin].
+Ratpack has first-class Gradle support provided via https://plugins.gradle.org/search?term=ratpack[Ratpack's Gradle plugin].
 It allows for easy dependency management (keeps versions of modules in sync) and hooks into https://docs.gradle.org/current/userguide/continuous_build.html[Gradle's continuous functionality].
 
 Can you create a Maven `pom.xml` file from memory?
@@ -69,10 +69,13 @@ repositories {
 
 Gradle has a number of out of the box features that make it superior to Maven however the one I will highlight here is the Gradle Wrapper.
 
-The Gradle Wrapper are a set of files that enable developers on a project to use the same exact version of Gradle.
-This is the default and encouraged best practice when it comes to working with Gradle.
+The Gradle Wrapper is a set of files that enables developer on a project to use the same exact version of Gradle.
+This is the a best practice when it comes to working with Gradle.
+Because Gradle is such a well maintained build tool, there are many updates.
+The Gradle Wrapper goes a long way towards preventing "works on my machine" syndrome.
 Wrapper scripts are available in `bash` and `bat` formats.
 Because the scripts are typically a part of the project, you don't _need_ to install Gradle to use it, just use the `gradlew` scripts.
+To generate the wrapper, invoke `gradle wrapper` from the command line.
 
 [NOTE]
 When generating scripts from Windows, make sure to `chmod +x gradlew` so that your *nix/Mac co-workers and CI server can execute the wrapper script.
