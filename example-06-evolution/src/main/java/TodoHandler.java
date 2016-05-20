@@ -25,8 +25,7 @@ public class TodoHandler extends InjectionHandler {
       })
       .get(() -> repo.getById(todoId).map(toJson).then(ctx::render))
       .patch(() -> ctx
-        .parse(Jackson.fromJson(new TypeToken<Map<String, Object>>() {
-        }))
+        .parse(Jackson.fromJson(new TypeToken<Map<String, Object>>() {}))
         .map(map -> {
           Map<String, Object> m = Maps.newHashMap();
           map.keySet().forEach(key -> m.put(key.toUpperCase(), map.get(key)));
