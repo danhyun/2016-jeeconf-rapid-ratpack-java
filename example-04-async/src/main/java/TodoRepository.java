@@ -32,14 +32,14 @@ public class TodoRepository {
 
   public Promise<TodoModel> add(TodoModel todo) {
     TodoRecord record = create.newRecord(TODO, todo);
-    return Operation.of(record::store)
+    return Blocking.op(record::store)
       .next(record::refresh)
       .map(() -> record.into(TodoModel.class));
   }
 
   public Promise<TodoModel> update(Map<String, Object> todo) {
     TodoRecord record = create.newRecord(TODO, todo);
-    return Operation.of(() -> create.executeUpdate(record))
+    return Blocking.op(() -> create.executeUpdate(record))
       .next(record::refresh)
       .map(() -> record.into(TodoModel.class));
   }

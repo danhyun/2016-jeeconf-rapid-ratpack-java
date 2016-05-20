@@ -38,7 +38,7 @@ public class TodoRepository {
 
   public Promise<Todo> add(Todo todo) {
     TodoRecord todoRecord = context.newRecord(TODO, todo);
-    return Operation.of(todoRecord::store)
+    return Blocking.op(todoRecord::store)
       .next(todoRecord::refresh)
       .map(() -> todoRecord.into(Todo.class));
   }
